@@ -98,6 +98,6 @@ if settings.DEBUG:
 # PRODUCTION SECURITY
 if not settings.DEBUG:
     urlpatterns = [
-                      path('admin/', block_admin),
+                      # path('admin/', block_admin),
                       path('nyumba-secret-panel-2025/', admin.site.urls),
                   ] + urlpatterns
