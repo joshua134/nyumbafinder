@@ -1,0 +1,364 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load number_filter %}
+{% load encryption_filter %}
+{% block meta %}<meta name="robots" content="noindex,nofollow">{% endblock %}
+{% block title %} My Dashboard - NyumbaFinder KE{% endblock %}
+
+{% block content %}
+    {% include 'partials/messages.html' %}
+    <div class="min-h-screen bg-[var(--bg)] py-16 px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h1 class="text-6xl font-bold text-white mb-4">
+                    Welcome, <span class="text-[var(--primary)]">{{ user.get_full_name }}</span>
+                </h1>
+                <p class="text-2xl text-gray-300">
+                    You are a <strong class="text-[var(--primary)]">{{ profile.get_user_type_display }}</strong>
+                </p>
+            </div>
+
+            <!-- AGENT: COMPANY NOT SUBMITTED -->
+            {% if profile.role.name == 'agent' and not profile.company %}
+                <div class="bg-red-900 border-4 border-red-500 rounded-3xl p-10 text-center mb-12">
+                    <h3 class="text-4xl font-bold text-white mb-6">Agent Verification Required</h3>
+                    <p class="text-xl text-gray-300 mb-8">
+                        You must submit your company details to post houses.
+                    </p>
+                    <a href="{% url 'complete_agent_registration' %}" 
+                    class="bg-white text-red-900 font-bold px-12 py-6 rounded-2xl text-2xl hover:scale-105 transition shadow-xl">
+                        COMPLETE COMPANY PROFILE
+                    </a>
+                </div>
+            {% endif %}
+
+            
+
+            <!-- MAIN DASHBOARD -->
+            <div class="grid lg:grid-cols-3 gap-10">
+
+                <!-- LEFT: PROFILE & COMPANY -->
+                <div class="lg:col-span-1 space-y-8">
+
+                    <!-- USER PROFILE CARD -->
+                    <div class="bg-[var(--bg-light)] rounded-3xl p-8 border-2 border-[var(--border)]">
+                        <h3 class="text-3xl font-bold text-white mb-6">Your Profile</h3>
+                        <div class="space-y-4 text-lg text-gray-300">
+                            <p><strong>Phone:</strong> {{ profile.phone }}</p>
+                            <p><strong>National ID:</strong> {{ profile.national_id|mask_sensitive:"4:4" }}</p>
+                            <p><strong>Status:</strong> 
+                                {% if profile.is_verified %}
+                                <span class="text-green-400 font-bold">VERIFIED</span>
+                                {% else %}
+                                <span class="text-yellow-400">Pending Approval</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        
+                        <!-- PAYMENT HISTORY LINK -->
+                        <div class="mt-6 pt-6 border-t border-gray-700">
+                            <a href="{% url 'payment_history' %}"
+                            class="block text-[var(--primary)] font-bold hover:underline text-lg">
+                                View Payment History →
+                            </a>
+                        </div>
+
+                    </div>
+
+                    <!-- AGENT: COMPANY CARD -->
+                    {% if profile.user_type == 'agent' and profile.company %}
+                    <div class="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-3xl p-8 text-white">
+                        <h3 class="text-3xl font-bold mb-6">Your Company</h3>
+                        <p class="text-xl font-bold">{{ profile.company.company_name }}</p>
+                        <p class="text-lg mt-2 opacity-90">{{ profile.company.company_address|truncatewords:10 }}</p>
+                        <p class="text-sm mt-4">Business Reg: {{ profile.company.business_registration }}</p>
+                        <div class="mt-6 space-y-2">
+                            {% for contact in profile.company.contacts.all %}
+                            <p class="text-sm">• {{ contact.value }}</p>
+                            {% endfor %}
+                        </div>
+                        <a href="{% url 'edit_company' %}" class="block mt-6 text-yellow-300 font-bold hover:underline">
+                            Edit Company
+                        </a>
+                    </div>
+                    {% endif %}
+
+                </div>
+
+                <!-- RIGHT: HOUSES & ACTIONS -->
+                <div class="lg:col-span-2 space-y-8">
+                    <div class="bg-[var(--bg-light)] rounded-3xl p-8 border-2 border-[var(--border)]">
+                        <h3 class="text-3xl font-bold text-white mb-6 flex items-center justify-between">
+                            Recent Activity
+                            <span class="text-sm text-gray-400">{{ recent_activities.count }} activities</span>
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            {% for activity in recent_activities %}
+                            <div class="bg-[var(--bg)] rounded-2xl p-4 border border-[var(--border)] hover:border-[var(--primary)] transition">
+                                <div class="flex items-center">
+                                    <span class="text-white flex-1">
+                                        {% if activity.activity_type == 'house_posted' %}
+                                            <h1>Test</h1>
+                                            {{ activity.description }}
+                                        {% elif activity.activity_type == 'house_updated' %}
+                                            {{ activity.description}}
+                                        {% elif activity.activity_type == 'profile_updated' %}
+                                            {{ activity.description }}
+                                        {% elif activity.activity_type == 'house_viewed' %}
+                                            {{ activity.description }}
+                                        {% elif activity.activity_type == 'review_posted' %}
+                                            {{ activity.description }}
+                                        {% elif activity.activity_type == 'delete_house' %}
+                                            <span class="text-red-300 font-semibold">⚠️ {{ activity.description }}</span>
+                                        {% elif activity.activity_type == 'password_changed' %}
+                                            {{ activity.description }}
+                                        {% else %}
+                                            Activity: {{ activity.description }}
+                                        {% endif %}
+                                    </span>
+                                    <span class="text-gray-400 text-sm">{{ activity.created_at|timesince }} ago</span>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="text-center text-gray-500 py-8">
+                                No recent activity
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+
+                    <!-- MY HOUSES -->
+                    <div class="bg-[var(--bg-light)] rounded-3xl p-4 sm:p-8 border-2 border-[var(--border)]">
+                        <!-- Header Section -->
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                            <!-- Title and Count - Always on first row -->
+                            <div class="flex flex-col items-start">
+                                <div class="flex items-center gap-3">
+                                    <h3 class="text-2xl sm:text-3xl font-bold text-white">My Houses</h3>
+                                    <span class="text-xs sm:text-sm text-gray-400 bg-[var(--bg)] px-2 py-1 rounded-lg">
+                                        {{ paginator.count|humanize_number }} listed
+                                    </span>
+                                </div>
+                                <p class="bg-[var(--bg)] px-2 py-1 rounded-lg text-xs md:text-sm text-gray-400 mt-1 md:mt-2">
+                                    Showing {{ houses.start_index }}-{{ houses.end_index }} of {{ paginator.count }} houses
+                                </p>
+                            </div>
+
+                            <!-- Control Buttons - Second row on mobile, same row on desktop -->
+                            <div class="flex items-center  justify-end gap-2">
+                                <!-- Search Component -->
+                                {% include 'partials/search_part.html' %}
+
+                                <!-- Sort and Filter Buttons -->
+                                <div class="flex items-center gap-2">
+                                    <!-- Filter Component -->
+                                    {% include 'partials/filter_part.html' %}
+
+                                    <!-- Sort Component -->
+                                    {% include 'partials/sort_part.html' %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Houses List Content -->
+                        <div class="space-y-4">
+                            {% for house in houses %}
+                                <div class="bg-[var(--bg)] rounded-2xl p-6 mb-6 border border-[var(--border)] hover:border-[var(--primary)] transition">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h4 class="text-2xl font-bold text-white">{{ house.title }}</h4>
+                                            <p class="text-lg text-[var(--text-muted)]">
+                                                {{ house.get_house_type_display }} • {{ house.location }}
+                                            </p>
+                                            {% if house.payment_status == 'paid' %}
+                                                <span class="inline-flex items-center px-2 py-1 mt-5 mb-2 rounded-full text-xs font-medium bg-emerald-900/30 text-emerald-400 border border-emerald-500/30">
+                                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                    </svg>
+                                                    Active
+                                                </span>
+                                            {% elif house.payment_status == 'pending' and not house.is_active %}
+                                                <span class="inline-flex items-center px-2 py-1 mt-5 mb-2 rounded-full text-xs font-medium bg-amber-900/30 text-amber-400 border border-amber-500/30">
+                                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                    </svg>
+                                                    Payment Pending
+                                                </span>
+                                            {% elif house.payment_status == 'unpaid' and not house.is_active %}
+                                                <span class="inline-flex items-center px-2 py-1 mt-5 mb-2 rounded-full text-xs font-medium bg-red-900/30 text-red-400 border border-red-500/30">
+                                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                    </svg>
+                                                    Inactive
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-3xl font-bold text-[var(--primary)]">KES {{ house.rent }}</p>
+                                            <p class="text-sm text-gray-400">Deposit: KES {{ house.deposit }}</p>
+                                            <!-- Payment Status Summary (NEW) -->
+                                            {% if house.payment_status != 'paid' %}
+                                                <p class="text-sm text-amber-400 font-medium mt-1">
+                                                    Activation: KES {{ amount }}
+                                                </p>
+                                            {% endif %}
+                                            {% if house.payment_status == 'paid' and house.is_active == False %}
+                                                <p class="text-xs text-rose-700 font-medium mt-1">
+                                                    Paid: KES {{ amount }}. Handling the issue.
+                                                </p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <div class="flex gap-6 mt-6 items-center">
+                                        {% if house.payment_status != 'paid' and house.is_active == False %}
+                                        <!-- Pay Button (for unpaid listings) -->
+                                            <a href="{% url 'initiate_payment' house.id %}" 
+                                            class="bg-emerald-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-emerald-700 transition flex items-center gap-2">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                                Activate
+                                            </a>
+                                        {% endif %}
+                                        {% if house.payment_status == 'paid' and not house.is_active %}
+                                            <a href="{% url 'contact_support' house.id %}" 
+                                            class="bg-purple-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-red-700 transition flex items-center gap-2">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                                Contact Support
+                                            </a>
+                                        {% endif %}
+                                        <a href="{% url 'edit_house' house.id %}" class="text-[var(--primary)] font-bold hover:underline">Edit</a>
+                                        <a href="{% url 'house_detail' house.id %}" class="text-green-400 font-bold hover:underline">View</a>
+
+                                        <!-- Delete Button -->
+                                        <button type="button" 
+                                                class="text-red-400 font-bold hover:text-red-300 transition delete-house-btn" 
+                                                data-house-id="{{ house.id }}" 
+                                                data-house-title="{{ house.title }}">
+                                            Delete
+                                        </button>
+
+                                        {% if house.reviews.exists %}
+                                            <span class="text-yellow-400 font-bold">★ {{ house.reviews.average_rating|floatformat:1 }}</span>
+                                        {% endif %}
+
+
+
+                                    </div>
+                                </div>         
+                              
+                            {% empty %}
+                                <div class="text-center text-gray-500 py-8 text-sm sm:text-xl">
+                                    {% if request.GET.search or request.GET.house_type or request.GET.status %}
+                                    No houses match your search criteria.
+                                    {% else %}
+                                    No houses posted yet. <a href="{% url 'post_house' %}" class="text-[var(--primary)] hover:underline">Post your first house!</a>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                            <!-- Pagination Controls -->
+                            {% include 'partials/pagination.html' %}   
+                        </div>
+                    </div>
+
+                    <!-- Delete Confirmation Overlay -->
+                    <div id="deleteOverlay" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                        <div class="bg-[var(--bg-light)] rounded-2xl border-2 border-[var(--border)] w-full max-w-md p-6">
+                            <div class="text-center">
+                                <!-- Warning Icon -->
+                                <div class="mx-auto w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-4">
+                                    <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                </div>
+                                
+                                <h3 class="text-2xl font-bold text-white mb-2">Delete House</h3>
+                                <p class="text-gray-300 mb-6">
+                                    Are you sure you want to delete "<span id="deleteHouseTitle" class="font-semibold text-white"></span>"?
+                                    This action cannot be undone.
+                                </p>
+                                
+                                <div class="flex flex-col sm:flex-row gap-3">
+                                    <!-- Cancel Button -->
+                                    <button type="button" id="cancelDelete" class="flex-1 bg-[var(--bg)] text-gray-300 py-3 rounded-xl border border-[var(--border)] hover:border-gray-500 hover:text-white transition font-semibold">
+                                        Cancel
+                                    </button>
+                                    <!-- Confirm Delete Button -->
+                                    <form id="deleteHouseForm" method="POST" class="flex-1">
+                                        {% csrf_token %}
+                                        <button type="submit" class="w-full bg-red-600 text-white py-3 rounded-xl hover:bg-red-700 transition font-semibold">
+                                            Yes, Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% include 'partials/search_overlay_part.html' %}
+
+    {% include 'partials/messages_js.html' %}
+    {% include 'partials/sort_js.html' %}
+    {% include 'partials/filter_js.html' %}
+    {% include 'partials/search_js.html' %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            
+
+            const deleteButtons = document.querySelectorAll('.delete-house-btn');
+            const deleteOverlay = document.getElementById('deleteOverlay');
+            const cancelDelete = document.getElementById('cancelDelete');
+            const deleteHouseTitle = document.getElementById('deleteHouseTitle');
+            const deleteHouseForm = document.getElementById('deleteHouseForm');
+
+            if (deleteButtons.length && deleteOverlay) {
+                // Add click event to all delete buttons
+                deleteButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        const houseId = this.getAttribute('data-house-id');
+                        const houseTitle = this.getAttribute('data-house-title');
+                        
+                        // Update the overlay with house details
+                        deleteHouseTitle.textContent = houseTitle;
+                        deleteHouseForm.action = `{% url 'delete_house' 0 %}`.replace('0', houseId);
+                        
+                        // Show the overlay
+                        deleteOverlay.classList.remove('hidden');
+                        document.body.style.overflow = 'hidden';
+                    });
+                });
+
+                // Close overlay functions
+                function closeDeleteOverlay() {
+                    deleteOverlay.classList.add('hidden');
+                    document.body.style.overflow = '';
+                }
+
+                // Cancel button
+                cancelDelete.addEventListener('click', closeDeleteOverlay);
+
+                // Close when clicking on overlay background
+                deleteOverlay.addEventListener('click', function(e) {
+                    if (e.target === deleteOverlay) {
+                        closeDeleteOverlay();
+                    }
+                });
+
+                // Close with Escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && !deleteOverlay.classList.contains('hidden')) {
+                        closeDeleteOverlay();
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}

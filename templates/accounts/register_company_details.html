@@ -1,0 +1,485 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% block meta %}<meta name="robots" content="noindex,nofollow">{% endblock %}
+{% block title %}Complete Company Registration - NyumbaFinder KE{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    /* Map container with search box */
+    .map-container {
+        position: relative;
+        width: 100%;
+        height: 400px;
+        border-radius: 1rem;
+        overflow: hidden;
+        border: 2px solid var(--primary);
+        background-color: #d4d4d8;
+    }
+
+    /* Search box styling */
+    .search-box {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        z-index: 1000;
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        width: 320px;
+        max-width: 90%;
+    }
+
+    .search-box input {
+        width: 100%;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        padding: 8px 12px;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+    .search-box input:focus {
+        border-color: #6366f1;
+        ring: 2px solid #6366f1;
+    }
+
+    .search-box button {
+        background: #6366f1;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 0.5rem;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+    }
+
+    .search-box button:hover {
+        background: #5b5cdd;
+    }
+
+    .search-box button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    /* Isolate Leaflet from Tailwind */
+    .leaflet-container {
+        background: #d4d4d8 !important;
+        font-family: inherit !important;
+    }
+    
+    .leaflet-container * {
+        box-sizing: content-box !important;
+    }
+
+    .contact-row { 
+        transition: all 0.3s; 
+    }
+    .contact-row:hover { 
+        background: rgba(99, 102, 241, 0.05); 
+    }
+
+    /* Loading spinner */
+    .animate-spin {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    /* Custom marker */
+    .custom-marker {
+        background: #6366f1;
+        border: 3px solid white;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+</style>
+<div class="min-h-screen bg-[var(--bg)] py-8">
+    <div class="max-w-4xl mx-auto px-4">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="w-20 h-20 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+            </div>
+            <h1 class="text-4xl font-bold text-white mb-4">Complete Agent Registration</h1>
+            <p class="text-gray-400 text-lg">Verify your company details to start posting properties</p>
+        </div>
+
+        {% include 'partials/messages.html' %}
+
+        <!-- Main Form Card -->
+        <div class="bg-[var(--bg-light)] rounded-2xl p-8 border border-[var(--border)]">
+            <form method="post" class="space-y-8" id="companyForm">
+                {% csrf_token %}
+
+                <!-- Company Information Section -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-2 h-8 bg-indigo-500 rounded-full"></div>
+                        <h2 class="text-2xl font-bold text-white">Company Information</h2>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- Company Name -->
+                        <div>
+                            <label for="{{ form.company_name.id_for_label }}" class="block text-white font-medium mb-2 text-sm">
+                                Company Name <span class="text-red-400">*</span>
+                            </label>
+                            {{ form.company_name|add_class:"w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition" }}
+                            {% if form.company_name.errors %}
+                            <div class="text-red-400 text-xs mt-1 space-y-1">
+                                {% for error in form.company_name.errors %}
+                                <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Business Registration -->
+                        <div>
+                            <label for="{{ form.business_registration.id_for_label }}" class="block text-white font-medium mb-2 text-sm">
+                                Business Registration No. <span class="text-red-400">*</span>
+                            </label>
+                            {{ form.business_registration|add_class:"w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition" }}
+                            {% if form.business_registration.errors %}
+                            <div class="text-red-400 text-xs mt-1 space-y-1">
+                                {% for error in form.business_registration.errors %}
+                                <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Company Address -->
+                    <div>
+                        <label for="{{ form.company_address.id_for_label }}" class="block text-white font-medium mb-2 text-sm">
+                            Company Address <span class="text-red-400">*</span>
+                        </label>
+                        {{ form.company_address|add_class:"w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition" }}
+                        {% if form.company_address.errors %}
+                        <div class="text-red-400 text-xs mt-1 space-y-1">
+                            {% for error in form.company_address.errors %}
+                            <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Website -->
+                    <div>
+                        <label for="{{ form.website.id_for_label }}" class="block text-white font-medium mb-2 text-sm">
+                            Website (Optional)
+                        </label>
+                        {{ form.website|add_class:"w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition" }}
+                    </div>
+                </div>
+
+                <!-- Office Location Section -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-2 h-8 bg-green-500 rounded-full"></div>
+                        <h2 class="text-2xl font-bold text-white">Office Location</h2>
+                    </div>
+
+                    <div class="bg-[var(--bg)] rounded-xl p-4 border border-[var(--border)]">
+                        <!-- LOCATION SECTION -->
+                        <div class="bg-[var(--bg-light)] rounded-2xl p-1 border border-[var(--border)]">
+                            <!-- Map Container -->
+                            <div class="map-container">
+                                <div class="search-box">
+                                    <div class="flex gap-2">
+                                        <input type="text" id="address-search" class="flex-1" placeholder="Search location (e.g., Karen, Nairobi)" value="">
+                                        <button type="button" onclick="searchAddress()" id="search-button">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="map" class="w-full h-full"></div>
+                            </div>
+                            <!-- Coordinates Display -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pl-6 pr-6">
+                                <div class="flex flex-row flex-wrap">
+                                    <label for="{{ form.latitude.id_for_label }}" class="block text-white font-medium mb-2">{{ form.latitude.label }} *</label>
+                                    {{ form.latitude|add_class:"w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white text-center font-mono" }}
+                                </div>
+                                    {% if form.latitude.errors %}
+                                        <div class="text-red-400 text-sm mt-1">{{ form.latitude.errors }}</div>
+                                    {% endif %}
+                                <div class="flex flex-row flex-wrap">
+                                    <label for="{{ form.longitude.id_for_label }}" class="block text-white font-medium mb-2">{{ form.longitude.label }} *</label>
+                                    {{ form.longitude|add_class:"w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white text-center font-mono" }}
+                                </div>
+                                    {% if form.longitude.errors %}
+                                        <div class="text-red-400 text-sm mt-1">{{ form.longitude.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Information Section -->
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-2 h-8 bg-yellow-500 rounded-full"></div>
+                        <h2 class="text-2xl font-bold text-white">Contact Information</h2>
+                    </div>
+
+                    <div class="bg-[var(--bg)] rounded-xl p-6 border border-[var(--border)]">
+                        <p class="text-gray-400 text-sm mb-6">Add all company phone numbers and email addresses</p>
+
+                        <div id="contacts-container" class="space-y-4">
+                            <div class="contact-row grid md:grid-cols-2 gap-4 p-4 bg-gray-800 rounded-xl border border-gray-700">
+                                <div>
+                                    <label class="block text-white font-medium mb-2 text-sm">Phone Number <span class="text-red-400">*</span></label>
+                                    <input type="tel" name="phones" required
+                                           class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition"
+                                           placeholder="+254712345678">
+                                </div>
+                                <div>
+                                    <label class="block text-white font-medium mb-2 text-sm">Email Address <span class="text-red-400">*</span></label>
+                                    <input type="email" name="emails" required
+                                           class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition"
+                                           placeholder="info@company.co.ke">
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button" onclick="addContact()" 
+                                class="mt-4 flex items-center gap-2 text-indigo-400 font-medium hover:text-indigo-300 transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                            </svg>
+                            Add Another Contact
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Submit Section -->
+                <div class="text-center pt-6 border-t border-[var(--border)]">
+                    <button type="submit" 
+                            class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-12 py-4 rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition transform hover:scale-105 shadow-lg">
+                        Submit for Verification
+                    </button>
+                    <p class="text-gray-400 text-sm mt-4">
+                        Your company details will be reviewed within 24 hours. Only verified agents can post properties.
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // Map variables
+    let map, marker;
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeMap();
+    });
+
+    function initializeMap() {
+        // Initialize map
+        map = L.map('map').setView([-1.2921, 36.8219], 13);
+
+        // Add tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        // Create custom marker
+        const customIcon = L.divIcon({
+            className: 'custom-marker',
+            html: '<div style="width: 24px; height: 24px; background: #6366f1; border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        });
+
+        // Add draggable marker
+        marker = L.marker([-1.2921, 36.8219], {
+            icon: customIcon,
+            draggable: true
+        }).addTo(map);
+
+        marker.bindPopup("<b>Your Property</b><br>Drag to adjust location").openPopup();
+
+        // Update coordinates when marker is moved
+        function updateCoordinates() {
+            const position = marker.getLatLng();
+            const lat = position.lat.toFixed(6);
+            const lon = position.lng.toFixed(6);
+            
+            
+            // Update form fields
+            document.getElementById('{{ form.latitude.id_for_label }}').value = lat;
+            document.getElementById('{{ form.longitude.id_for_label }}').value = lon;
+            
+        }
+
+        marker.on('dragend', updateCoordinates);
+
+        // Update coordinates when map is clicked
+        map.on('click', function(e) {
+            marker.setLatLng(e.latlng);
+            updateCoordinates();
+            map.panTo(e.latlng);
+        });
+
+        // Initial coordinate update
+        updateCoordinates();
+
+        // Handle map resize
+        setTimeout(() => {
+            map.invalidateSize();
+        }, 100);
+    }
+
+    function searchAddress() {
+        const query = document.getElementById('address-search').value.trim();
+        if (!query) {
+            alert('Please enter a location to search for.');
+            return;
+        }
+
+        // Show loading state
+        const searchButton = document.getElementById('search-button');
+        const originalContent = searchButton.innerHTML;
+        searchButton.innerHTML = '<div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>';
+        searchButton.disabled = true;
+
+        console.log('Searching for:', query);
+
+        // Add Kenya to the search query for better results
+        const searchQuery = query.includes('Kenya') || query.includes('Nairobi') ? query : `${query}, Nairobi, Kenya`;
+        
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&countrycodes=ke`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Search results:', data);
+                
+                if (data && data.length > 0) {
+                    const result = data[0];
+                    const lat = parseFloat(result.lat);
+                    const lon = parseFloat(result.lon);
+                    
+                    console.log('Found location:', result.display_name, 'at', lat, lon);
+                    
+                    // Update marker position
+                    marker.setLatLng([lat, lon]);
+                    
+                    // Center map on the location with higher zoom
+                    map.setView([lat, lon], 16);
+                    
+                    // Update coordinate fields
+                    document.getElementById('{{ form.latitude.id_for_label }}').value = lat.toFixed(6);
+                    document.getElementById('{{ form.longitude.id_for_label }}').value = lon.toFixed(6);
+                    
+                    // Show success message in popup
+                    marker.bindPopup(`<b>Location Found</b><br>${result.display_name}<br>Drag marker to adjust exact position`).openPopup();
+                    
+                } else {
+                    alert('Location not found. Please try a different search term.\n\nTry: "Westlands, Nairobi" or "Karen, Nairobi"');
+                }
+            })
+            .catch(error => {
+                console.error('Error searching address:', error);
+                alert('Error searching for location. Please check your internet connection and try again.');
+            })
+            .finally(() => {
+                // Restore button state
+                searchButton.innerHTML = originalContent;
+                searchButton.disabled = false;
+            });
+    }
+
+    // Contact management
+    let contactCount = 1;
+
+    function addContact() {
+        contactCount++;
+        const container = document.getElementById('contacts-container');
+        const div = document.createElement('div');
+        div.className = 'contact-row grid md:grid-cols-2 gap-4 p-4 bg-gray-800 rounded-xl border border-gray-700';
+        div.innerHTML = `
+            <div>
+                <label class="block text-white font-medium mb-2 text-sm">Phone Number</label>
+                <input type="tel" name="phones" 
+                       class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition"
+                       placeholder="+254712345678">
+            </div>
+            <div>
+                <label class="block text-white font-medium mb-2 text-sm">Email Address</label>
+                <input type="email" name="emails" 
+                       class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition"
+                       placeholder="sales@company.co.ke">
+            </div>
+        `;
+        container.appendChild(div);
+    }
+
+    // Form validation
+    document.getElementById('companyForm').addEventListener('submit', function(e) {
+        const phones = document.getElementsByName('phones');
+        const emails = document.getElementsByName('emails');
+        let hasValidContact = false;
+
+        for (let i = 0; i < phones.length; i++) {
+            if (phones[i].value.trim() && emails[i].value.trim()) {
+                hasValidContact = true;
+                break;
+            }
+        }
+
+        if (!hasValidContact) {
+            e.preventDefault();
+            alert('Please fill at least one complete contact (both phone and email)');
+            return;
+        }
+
+        // Validate coordinates
+        const lat = document.getElementById('{{ form.latitude.id_for_label }}').value;
+        const lng = document.getElementById('{{ form.longitude.id_for_label }}').value;
+        if (!lat || !lng) {
+            e.preventDefault();
+            alert('Please set your office location by searching or clicking on the map.');
+            return;
+        }
+    });
+
+    // Allow pressing Enter in search box
+    document.getElementById('address-search').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            searchAddress();
+        }
+    });
+</script>
+{% endblock %}

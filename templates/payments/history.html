@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block meta %}<meta name="robots" content="noindex,nofollow">{% endblock %}
+{% block title %}Payment History - NyumbaFinder KE{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-b from-gray-900 to-black py-8">
+    <div class="max-w-6xl mx-auto px-4">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-white mb-2">Payment History</h1>
+            <p class="text-gray-400">Track all your listing payments and receipts</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-gray-800/50 border border-gray-700 rounded-xl p-6">
+                <div class="text-gray-400 text-sm mb-2">Total Payments</div>
+                <div class="text-3xl font-bold text-white">{{ payments.count }}</div>
+            </div>
+            <div class="bg-gray-800/50 border border-gray-700 rounded-xl p-6">
+                <div class="text-gray-400 text-sm mb-2">Total Spent</div>
+                <div class="text-3xl font-bold text-emerald-400">KES {{ total_spent|default:0 }}</div>
+            </div>
+            <div class="bg-gray-800/50 border border-gray-700 rounded-xl p-6">
+                <div class="text-gray-400 text-sm mb-2">Active Listings</div>
+                <div class="text-3xl font-bold text-blue-400">{{ active_listings|default:0 }}</div>
+            </div>
+        </div>
+
+        <!-- Payments Table -->
+        <div class="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-2xl overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-900/50">
+                        <tr>
+                            <th class="text-left p-4 text-gray-400 font-medium">Date</th>
+                            <th class="text-left p-4 text-gray-400 font-medium">House</th>
+                            <th class="text-left p-4 text-gray-400 font-medium">Amount</th>
+                            <th class="text-left p-4 text-gray-400 font-medium">Status</th>
+                            <th class="text-left p-4 text-gray-400 font-medium">Method</th>
+                            <th class="text-left p-4 text-gray-400 font-medium">Receipt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payments %}
+                            <tr class="border-t border-gray-700 hover:bg-gray-800/30 transition">
+                                <td class="p-4">
+                                    <div class="text-white">{{ payment.created_at|date:"d M Y" }}</div>
+                                    <div class="text-gray-500 text-sm">{{ payment.created_at|date:"h:i A" }}</div>
+                                </td>
+                                <td class="p-4">
+                                    <a href="{% url 'house_detail' payment.house.id %}" 
+                                    class="text-white hover:text-emerald-400 font-medium">
+                                        {{ payment.house.title|truncatechars:30 }}
+                                    </a>
+                                    <div class="text-gray-500 text-sm">{{ payment.house.location|truncatechars:25 }}</div>
+                                </td>
+                                <td class="p-4">
+                                    <div class="text-white font-bold">KES {{ payment.amount }}</div>
+                                </td>
+                                <td class="p-4">
+                                    {% if payment.status == 'paid' %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-900/30 text-emerald-400">
+                                        <span class="w-2 h-2 bg-emerald-400 rounded-full mr-2"></span>
+                                        Paid
+                                    </span>
+                                    {% elif payment.status == 'pending' %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-900/30 text-amber-400">
+                                        <span class="w-2 h-2 bg-amber-400 rounded-full mr-2"></span>
+                                        Pending
+                                    </span>
+                                    {% elif payment.status == 'failed' %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-900/30 text-red-400">
+                                        <span class="w-2 h-2 bg-red-400 rounded-full mr-2"></span>
+                                        Failed
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td class="p-4">
+                                    <div class="flex items-center gap-2">
+                                        {% if payment.payment_method == 'mpesa' %}
+                                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/M-PESA_LOGO-01.svg/1200px-M-PESA_LOGO-01.svg.png" 
+                                            alt="M-Pesa" class="w-6 h-6">
+                                        <span class="text-white">M-Pesa</span>
+                                        {% else %}
+                                        <span class="text-gray-400">{{ payment.get_payment_method_display }}</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="p-4">
+                                    {% if payment.status == 'paid' %}
+                                    <a href="{% url 'payment_receipt' payment.id %}" 
+                                    class="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                        View Receipt
+                                    </a>
+                                    {% else %}
+                                    <span class="text-gray-500 text-sm">—</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="p-8 text-center">
+                                <div class="text-gray-500">
+                                    <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    <p class="text-lg">No payments yet</p>
+                                    <p class="text-sm mt-2">Your payment history will appear here</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if payments.has_other_pages %}
+            <div class="border-t border-gray-700 p-4">
+                <div class="flex items-center justify-between">
+                    <div class="text-gray-400 text-sm">
+                        Showing {{ payments.start_index }}–{{ payments.end_index }} of {{ payments.paginator.count }}
+                    </div>
+                    <div class="flex gap-2">
+                        {% if payments.has_previous %}
+                        <a href="?page={{ payments.previous_page_number }}" 
+                           class="px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700">
+                            Previous
+                        </a>
+                        {% endif %}
+                        
+                        {% if payments.has_next %}
+                        <a href="?page={{ payments.next_page_number }}" 
+                           class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
+                            Next
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Help Section -->
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-gray-800/30 border border-gray-700 rounded-xl p-6">
+                <h3 class="text-white font-bold mb-3 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                    Payment Security
+                </h3>
+                <p class="text-gray-400 text-sm">
+                    All payments are processed securely through M-Pesa. Your financial information is never stored on our servers.
+                </p>
+            </div>
+            
+            <div class="bg-gray-800/30 border border-gray-700 rounded-xl p-6">
+                <h3 class="text-white font-bold mb-3 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                    Need Help?
+                </h3>
+                <p class="text-gray-400 text-sm">
+                    For payment issues or refund requests, contact our support team:
+                    <a href="tel:+254700000000" class="text-emerald-400 font-medium">0700 000 000</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

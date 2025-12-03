@@ -1,0 +1,111 @@
+{% load static %}
+{% load footer_tags %}
+<!-- FOOTER — PLACE THIS AT THE VERY BOTTOM OF base.html (just before </body>) -->
+<footer class="mt-1 glass border-t border-white/10">
+    <div class="max-w-7xl mx-auto px-6 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-10 text-sm">
+
+            <!-- Brand + Mission -->
+            <div class="space-y-4">
+                <div class="flex items-center gap-3">
+                    <svg class="w-9 h-9 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    
+                    <span class="text-xl font-bold text-white">NyumbaFinder KE</span>
+                </div>
+                <p class="text-gray-300 leading-relaxed max-w-xs">
+                    Kenya’s most secure house-hunting platform.<br>
+                    <span class="text-indigo-400 font-bold">No fake listings. No scammers.</span><br>
+                    Every house can be traced via mapping coordinates to ensure authenticity.
+                </p>
+            </div>
+
+            <!-- Quick Links -->
+            <div>
+                <h3 class="font-bold text-white mb-4">Explore</h3>
+                <ul class="space-y-3 text-gray-300">
+                    <li><a href="{% url 'dashboard' %}" class="hover:text-indigo-400 transition">Home</a></li>
+                    <li><a href="{% url 'post_house' %}" class="hover:text-indigo-400 transition">Search Houses</a></li>
+                    <li><a href="{% url 'post_house' %}" class="hover:text-indigo-400 transition">Post a House</a></li>
+                    <li><a href="{% url 'how_it_works' %}" class="hover:text-indigo-400 transition">How It Works</a></li>
+                    <li><a href="mailto:{% get_support_email %}" class="hover:text-indigo-400 transitio">Contact Support</a></li>
+                </ul>
+            </div>
+
+            <!-- Auth Links – Hidden when logged in -->
+            {% if not user.is_authenticated %}
+            <div>
+                <h3 class="font-bold text-white mb-4">Get Started</h3>
+                <ul class="space-y-3">
+                    <li><a href="{% url 'register' %}" class="text-indigo-400 font-bold hover:underline text-lg">Register Free</a></li>
+                    <li><a href="{% url 'login' %}" class="hover:text-indigo-400 transition">Login</a></li>
+                </ul>
+            </div>
+            {% else %}
+            <div>
+                <h3 class="font-bold text-white mb-4">Hello, {{ user.first_name|default:"User" }}</h3>
+                <ul class="space-y-3 text-gray-300">
+                    <li><a href="{% url 'dashboard' %}" class="hover:text-indigo-400 transition">Dashboard</a></li>
+                    <li><a href="{% url 'dashboard' %}" class="hover:text-indigo-400 transition">My Listings</a></li>
+                    <li><a href="{% url 'dashboard' %}" class="hover:text-indigo-400 transition">Profile</a></li>
+                    <li>
+                        <form method="post" action="{% url 'logout' %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="text-red-400 hover:underline">Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
+
+            <!-- Anti-Scammer Badge -->
+            <div class="text-center md:text-right">
+                <div class="inline-block bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-4 rounded-xl shadow-2xl">
+                    <div class="flex items-center gap-3 justify-center md:justify-end">
+                        <svg class="w-9 h-9" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <div class="text-left">
+                            <div class="font-bold text-lg">100% SCAM-FREE</div>
+                            <div class="text-xs opacity-90">Verified Listings Only</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COPYRIGHT + CREATED BY JTECH – THIS IS THE VERY BOTTOM -->
+        <div class="mt-16 pt-8 border-t border-white/10">
+            <div class="flex flex-col md:flex-row justify-between items-center text-gray-400 text-sm">
+                <!-- Left: Copyright + Links -->
+                <div class="text-center md:text-left order-2 md:order-1 mt-4 md:mt-0">
+                    <p class="text-xs">
+                        <a href="{% url 'privacy_policy' %}" class="hover:text-indigo-400 mx-2">Privacy Policy</a> •
+                        <a href="{% url 'terms_of_service' %}" class="hover:text-indigo-400 mx-2">Terms of Service</a> 
+                    </p>
+                </div>
+
+                <!-- Center: Copyright -->
+                <div class="order-1 md:order-2">
+                    <p class="text-xs font-medium">
+                        © <span id="current-year">2025</span> NyumbaFinder KE • All rights reserved
+                    </p>
+                </div>
+
+                <!-- Right: Created by JTech -->
+                <div class="order-3 text-center md:text-right mt-4 md:mt-0">
+                    <p class="text-xs">
+                        Created with <span class="text-red-500">♥</span> by 
+                        <span class="text-indigo-400 font-bold">JTech</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- AUTO UPDATE CURRENT YEAR -->
+<script>
+    document.getElementById("current-year").textContent = new Date().getFullYear();
+</script>

@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+{% load tailwind_filters %}
+{% load widget_tweaks %}
+{% block meta %}<meta name="robots" content="noindex,nofollow">{% endblock %}
+{% block title %}Edit Profile - NyumbaFinder KE{% endblock %}
+
+{% block content %}
+    <div class="bg-[var(--bg)] py-2">
+        <div class="max-w-2xl mx-auto px-4">
+            <!-- Page Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-white mb-3">Edit Your Profile</h1>
+                <p class="text-gray-400">Update your personal information</p>
+            </div>
+
+            <div class="bg-[var(--bg-light)] rounded-2xl p-6 border border-[var(--border)]">
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <!-- Personal Information -->
+                    <div class="space-y-4">
+                        <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            Personal Information
+                        </h3>
+                        
+                        <!-- First Name -->
+                        <div>
+                            <label for="{{ form.first_name.id_for_label }}" class="block text-white font-medium mb-2">First Name</label>
+                            <input type="text" 
+                                   name="first_name" 
+                                   id="id_first_name"
+                                   value="{{ form.first_name.value|default:request.user.first_name }}"
+                                   class="w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                                   placeholder="Enter your first name">
+                            {% if form.first_name.errors %}
+                                <div class="text-red-400 text-sm mt-1">{{ form.first_name.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Last Name -->
+                        <div>
+                            <label for="{{ form.last_name.id_for_label }}" class="block text-white font-medium mb-2">Last Name</label>
+                            <input type="text" 
+                                   name="last_name" 
+                                   id="id_last_name"
+                                   value="{{ form.last_name.value|default:request.user.last_name }}"
+                                   class="w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                                   placeholder="Enter your last name">
+                            {% if form.last_name.errors %}
+                                <div class="text-red-400 text-sm mt-1">{{ form.last_name.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Phone Number -->
+                        <div>
+                            <label for="{{ form.phone.id_for_label }}" class="block text-white font-medium mb-2">Phone Number</label>
+                            {% if form.phone %}
+                                {{ form.phone|add_class:"w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" }}
+                            {% else %}
+                                <input type="tel" 
+                                       name="phone" 
+                                       id="id_phone"
+                                       value="{{ request.user.profile.phone|default:'' }}"
+                                       class="w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                                       placeholder="+254712345678">
+                            {% endif %}
+                            {% if form.phone.errors %}
+                                <div class="text-red-400 text-sm mt-1">{{ form.phone.errors }}</div>
+                            {% endif %}
+                            <p class="text-gray-400 text-sm mt-1">Format: +254712345678</p>
+                        </div>
+
+                        <!-- Email (readonly) -->
+                        <div>
+                            <label class="block text-white font-medium mb-2">Email Address</label>
+                            <input type="email" 
+                                   value="{{ request.user.email }}" 
+                                   class="w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-gray-400 cursor-not-allowed" 
+                                   readonly disabled>
+                            <p class="text-gray-400 text-sm mt-1">Contact support to change your email</p>
+                        </div>
+                    </div>
+                    <!-- Action Buttons -->
+                    <div class="flex gap-4 pt-6 border-t border-[var(--border)]">
+                        <button type="submit" class="flex-1 bg-[var(--primary)] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[var(--primary-light)] transition transform hover:scale-105">
+                            <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Update Profile
+                        </button>
+                        <a href="{% url 'profile' %}" class="flex-1 bg-gray-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-700 transition text-center">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+                
+                <!-- Additional Options -->
+                <div class="mt-8 pt-6 border-t border-[var(--border)]">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <a href="{% url 'change_password' %}" class="bg-yellow-600 text-white p-4 rounded-xl hover:bg-yellow-700 transition text-center">
+                            <svg class="w-6 h-6 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                            </svg>
+                            Change Password
+                        </a>
+                        <a href="{% url 'profile' %}" class="bg-blue-600 text-white p-4 rounded-xl hover:bg-blue-700 transition text-center">
+                            <svg class="w-6 h-6 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            View Profile
+                        </a>
+                        
+                        <!-- Edit Company Information Link (for agents) -->
+                        {% if is_agent and request.user.profile.company %}
+                            <a href="{% url 'company' %}" class="bg-purple-600 text-white p-4 rounded-xl hover:bg-purple-700 transition text-center">
+                                <svg class="w-6 h-6 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                                View Company
+                            </a>
+
+                            <a href="{% url 'edit_company' %}" class="bg-purple-600 text-white p-4 rounded-xl hover:bg-purple-700 transition text-center">
+                                <svg class="w-6 h-6 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                                Edit Company Info
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% comment %} {% extends "base.html" %}
+{% load tailwind_filters %}
+{% load widget_tweaks %}
+{% block meta %}<meta name="robots" content="noindex,nofollow">{% endblock %}
+{% block title %}Edit Profile - NyumbaFinder KE{% endblock %}
+
+{% block content %}
+    <div class="min-h-screen bg-[var(--bg)] py-8">
+        <div class="max-w-2xl mx-auto px-4">
+            <!-- Page Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-white mb-3">Edit Your Profile</h1>
+                <p class="text-gray-400">Update your personal information</p>
+            </div>
+
+            <!-- Success/Error Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="{% if message.tags == 'error' %}bg-red-600{% else %}bg-green-600{% endif %} text-white p-4 rounded-xl mb-6">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="bg-[var(--bg-light)] rounded-2xl p-6 border border-[var(--border)]">
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <!-- Personal Information -->
+                    <div class="space-y-4">
+                        <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            Personal Information
+                        </h3>
+                        
+                        <!-- First Name -->
+                        <div>
+                            <label for="{{ form.first_name.id_for_label }}" class="block text-white font-medium mb-2">First Name</label>
+                            {{ form.first_name|add_class:"w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" }}
+                            {% if form.first_name.errors %}
+                                <div class="text-red-400 text-sm mt-1">{{ form.first_name.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Last Name -->
+                        <div>
+                            <label for="{{ form.last_name.id_for_label }}" class="block text-white font-medium mb-2">Last Name</label>
+                            {{ form.last_name|add_class:"w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" }}
+                            {% if form.last_name.errors %}
+                                <div class="text-red-400 text-sm mt-1">{{ form.last_name.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Phone Number -->
+                        <div>
+                            <label for="{{ form.phone.id_for_label }}" class="block text-white font-medium mb-2">Phone Number</label>
+                            {{ form.phone|add_class:"w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" }}
+                            {% if form.phone.errors %}
+                                <div class="text-red-400 text-sm mt-1">{{ form.phone.errors }}</div>
+                            {% endif %}
+                            <p class="text-gray-400 text-sm mt-1">Format: +254712345678</p>
+                        </div>
+
+                        <!-- Email (readonly) -->
+                        <div>
+                            <label class="block text-white font-medium mb-2">Email Address</label>
+                            <input type="email" value="{{ request.user.email }}" 
+                                class="w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-gray-400 cursor-not-allowed" 
+                                readonly disabled>
+                            <p class="text-gray-400 text-sm mt-1">Contact support to change your email</p>
+                        </div>
+                    </div>
+
+                    <!-- Location Information -->
+                    <div class="space-y-4 pt-6 border-t border-[var(--border)]">
+                        <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            Location
+                        </h3>
+
+                        <!-- County -->
+                        <div>
+                            <label for="{{ form.county.id_for_label }}" class="block text-white font-medium mb-2">County</label>
+                            {{ form.county|add_class:"w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" }}
+                            {% if form.county.errors %}
+                                <div class="text-red-400 text-sm mt-1">{{ form.county.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Town -->
+                        <div>
+                            <label for="{{ form.town.id_for_label }}" class="block text-white font-medium mb-2">Town/City</label>
+                            {{ form.town|add_class:"w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" }}
+                            {% if form.town.errors %}
+                                <div class="text-red-400 text-sm mt-1">{{ form.town.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Estate -->
+                        <div>
+                            <label for="{{ form.estate.id_for_label }}" class="block text-white font-medium mb-2">Estate/Area</label>
+                            {{ form.estate|add_class:"w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" }}
+                            {% if form.estate.errors %}
+                                <div class="text-red-400 text-sm mt-1">{{ form.estate.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex gap-4 pt-6 border-t border-[var(--border)]">
+                        <button type="submit" class="flex-1 bg-[var(--primary)] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[var(--primary-light)] transition transform hover:scale-105">
+                            <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Update Profile
+                        </button>
+                        <a href="{% url 'profile' %}" class="flex-1 bg-gray-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-700 transition text-center">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+                
+                <!-- Additional Options -->
+                <div class="mt-8 pt-6 border-t border-[var(--border)]">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <a href="{% url 'change_password' %}" class="bg-yellow-600 text-white p-4 rounded-xl hover:bg-yellow-700 transition text-center">
+                            <svg class="w-6 h-6 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                            </svg>
+                            Change Password
+                        </a>
+                        <a href="{% url 'profile' %}" class="bg-blue-600 text-white p-4 rounded-xl hover:bg-blue-700 transition text-center">
+                            <svg class="w-6 h-6 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            View Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %} {% endcomment %}

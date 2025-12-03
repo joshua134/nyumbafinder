@@ -1,0 +1,47 @@
+<script>
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchToggle = document.getElementById('searchToggle');
+        const searchOverlay = document.getElementById('searchOverlay');
+        const closeSearch = document.getElementById('closeSearch');
+        const searchInput = document.getElementById('searchInput');
+
+        // Always ensure search overlay is hidden on page load
+        if (searchOverlay) {
+            searchOverlay.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+        
+        if (searchToggle && searchOverlay) {
+            // Open search overlay
+            searchToggle.addEventListener('click', function() {
+                searchOverlay.classList.remove('hidden');
+                document.body.style.overflow = 'hidden'; // Prevent background scrolling
+                setTimeout(() => searchInput.focus(), 100);
+            });
+            
+            // Close search overlay
+            function closeSearchOverlay() {
+                searchOverlay.classList.add('hidden');
+                document.body.style.overflow = ''; // Restore scrolling
+            }
+            
+            closeSearch.addEventListener('click', closeSearchOverlay);
+            
+            // Close when clicking on overlay background
+            searchOverlay.addEventListener('click', function(e) {
+                if (e.target === searchOverlay) {
+                    closeSearchOverlay();
+                }
+            });
+            
+            // Close with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && !searchOverlay.classList.contains('hidden')) {
+                    closeSearchOverlay();
+                }
+            });
+        }
+    });
+
+</script>

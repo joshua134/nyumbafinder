@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block meta %}<meta name="robots" content="noindex,nofollow">{% endblock %}
+{% block title %}Payment Receipt - NyumbaFinder KE{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-b from-gray-900 to-black py-8 print:bg-white print:py-0">
+    <div class="max-w-2xl mx-auto px-4">
+        <!-- Receipt Container -->
+        <div class="bg-white print:shadow-none rounded-2xl shadow-2xl overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-emerald-600 to-green-500 p-8 text-center print:p-6">
+                <div class="flex items-center justify-center gap-3 mb-4">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                    <h1 class="text-3xl font-bold text-white">Payment Receipt</h1>
+                </div>
+                <p class="text-emerald-100">NyumbaFinder Kenya • Official Payment Confirmation</p>
+            </div>
+
+            <!-- Receipt Body -->
+            <div class="p-8 print:p-6">
+                <!-- Receipt Info -->
+                <div class="grid grid-cols-2 gap-6 mb-8">
+                    <div>
+                        <h3 class="text-gray-500 text-sm font-medium mb-2">RECEIPT NO.</h3>
+                        <p class="text-gray-800 font-bold text-lg">PAY{{ payment.id|stringformat:"06d" }}</p>
+                    </div>
+                    <div class="text-right">
+                        <h3 class="text-gray-500 text-sm font-medium mb-2">DATE PAID</h3>
+                        <p class="text-gray-800 font-bold text-lg">{{ payment.paid_at|date:"d M Y" }}</p>
+                        <p class="text-gray-600 text-sm">{{ payment.paid_at|date:"h:i A" }}</p>
+                    </div>
+                </div>
+
+                <!-- Payment Details -->
+                <div class="space-y-6">
+                    <!-- Amount -->
+                    <div class="border-t border-b border-gray-200 py-6">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="text-gray-800 font-bold text-xl">Amount Paid</h3>
+                                <p class="text-gray-600">Listing activation fee • 30 days visibility</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-4xl font-bold text-emerald-600">KES {{ payment.amount }}</div>
+                                <p class="text-gray-600 text-sm">Inclusive of all charges</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Transaction Details -->
+                    <div class="space-y-4">
+                        <h3 class="text-gray-800 font-bold text-lg">Transaction Details</h3>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-gray-500 text-sm">Payment Method</p>
+                                <p class="text-gray-800 font-medium">
+                                    {% if payment.payment_method == 'mpesa' %}
+                                        <span class="inline-flex items-center gap-2">
+                                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/M-PESA_LOGO-01.svg/1200px-M-PESA_LOGO-01.svg.png" 
+                                                alt="M-Pesa" class="w-6 h-6">
+                                            M-Pesa
+                                        </span>
+                                    {% else %}
+                                        {{ payment.get_payment_method_display }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                            
+                            <div>
+                                <p class="text-gray-500 text-sm">Transaction Code</p>
+                                <p class="text-gray-800 font-mono font-medium">{{ payment.latest_mpesa_code|default:"N/A" }}</p>
+                            </div>
+                            
+                            <div>
+                                <p class="text-gray-500 text-sm">Phone Number</p>
+                                <p class="text-gray-800 font-medium">+{{ payment.phone_number }}</p>
+                            </div>
+                            
+                            <div>
+                                <p class="text-gray-500 text-sm">Status</p>
+                                <p class="text-gray-800">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-emerald-100 text-emerald-800">
+                                        ✅ Paid
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customer Details -->
+                    <div class="bg-gray-50 p-6 rounded-xl">
+                        <h3 class="text-gray-800 font-bold text-lg mb-4">Customer Information</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-gray-500 text-sm">Name</p>
+                                <p class="text-gray-800 font-medium">{{ payment.user.get_full_name }}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500 text-sm">Email</p>
+                                <p class="text-gray-800 font-medium">{{ payment.user.email }}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500 text-sm">User ID</p>
+                                <p class="text-gray-800 font-medium">USER{{ payment.user.id|stringformat:"06d" }}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-500 text-sm">Payment Date</p>
+                                <p class="text-gray-800 font-medium">{{ payment.created_at|date:"d M Y, h:i A" }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- House Details -->
+                    <div class="border-t border-gray-200 pt-6">
+                        <h3 class="text-gray-800 font-bold text-lg mb-4">House Details</h3>
+                        <div class="bg-gray-50 p-6 rounded-xl">
+                            <div class="flex items-start gap-4">
+                                {% if house.images.first %}
+                                <img src="{{ house.images.first.image.url }}" 
+                                     alt="{{ house.title }}"
+                                     class="w-20 h-20 rounded-lg object-cover">
+                                {% endif %}
+                                <div class="flex-1">
+                                    <h4 class="text-gray-800 font-bold text-lg mb-1">{{ house.title }}</h4>
+                                    <p class="text-gray-600 mb-2">{{ house.location }}</p>
+                                    <div class="flex items-center gap-4">
+                                        <span class="text-emerald-600 font-bold text-xl">KES {{ house.rent|floatformat:0 }}</span>
+                                        <span class="text-gray-500">/month</span>
+                                        <span class="ml-auto px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                                            Active for 30 days
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Terms -->
+                <div class="border-t border-gray-200 mt-8 pt-6">
+                    <p class="text-gray-500 text-sm">
+                        This is an official receipt from NyumbaFinder Kenya. 
+                        This payment covers listing activation for 30 days from payment date.
+                        For inquiries, contact: support@nyumbafinder.co.ke or call 0700 000 000.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="bg-gray-900 p-8 text-center print:p-6">
+                <p class="text-gray-400 text-sm">
+                    Thank you for choosing NyumbaFinder Kenya.<br>
+                    This receipt was generated electronically and is valid without signature.
+                </p>
+                <p class="text-gray-500 text-xs mt-4">
+                    Receipt ID: PAY{{ payment.id|stringformat:"06d" }} • Generated: {% now "d M Y, h:i A" %}
+                </p>
+            </div>
+        </div>
+
+        <!-- Action Buttons (hidden when printing) -->
+        <div class="mt-8 flex flex-col sm:flex-row gap-4 print:hidden">
+            <button onclick="window.print()" 
+                    class="flex-1 bg-emerald-600 text-white py-4 rounded-xl font-bold hover:bg-emerald-700 transition flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                </svg>
+                Print Receipt
+            </button>
+            
+            <a href="{% url 'house_detail' house.id %}" 
+               class="flex-1 border border-gray-600 text-gray-300 py-4 rounded-xl font-bold hover:bg-gray-800 transition flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+                View House
+            </a>
+            
+            <a href="{% url 'payment_history' %}" 
+               class="flex-1 border border-gray-600 text-gray-300 py-4 rounded-xl font-bold hover:bg-gray-800 transition flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+                Payment History
+            </a>
+        </div>
+
+        <!-- Print Styles -->
+        <style>
+        @media print {
+            @page {
+                margin: 0.5in;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            .print\:hidden {
+                display: none !important;
+            }
+            a {
+                color: black !important;
+                text-decoration: none !important;
+            }
+        }
+        </style>
+    </div>
+</div>
+{% endblock %}

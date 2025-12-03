@@ -1,0 +1,648 @@
+{% extends "base.html" %}
+{% load static %}
+{% load tailwind_filters %}
+{% load widget_tweaks %}
+{% block meta %}<meta name="robots" content="noindex,nofollow">{% endblock %}
+{% block title %}Post House - NyumbaFinder KE{% endblock %}
+{ }
+
+{% block content %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<!-- Quill CSS -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+<style>
+    /* Isolate Leaflet from Tailwind */
+    .leaflet-container {
+        background: #d4d4d8 !important;
+        font-family: inherit !important;
+    }
+    
+    .leaflet-container * {
+        box-sizing: content-box !important;
+    }
+    
+    /* Quill editor styling */
+    .ql-toolbar {
+        border-top-left-radius: 0.5rem;
+        border-top-right-radius: 0.5rem;
+        border-bottom: 1px solid #ccc !important;
+    }
+    
+    .ql-container {
+        border-bottom-left-radius: 0.5rem;
+        border-bottom-right-radius: 0.5rem;
+        height: 200px;
+    }
+
+    .ql-editor {
+        background: white;
+        color: black;
+    }
+    
+    /* Image preview styling */
+    .remove-image {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: #ef4444;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 25px;
+        height: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        cursor: pointer;
+    }
+
+    /* Map container with search box */
+    .map-container {
+        position: relative;
+        width: 100%;
+        height: 384px; /* h-96 = 384px */
+        border-radius: 0.75rem; /* rounded-xl */
+        overflow: hidden;
+        border: 2px solid var(--primary);
+        background-color: #d4d4d8; /* bg-gray-200 */
+    }
+
+    /* Search box styling */
+    .search-box {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        z-index: 1000; /* Higher than map controls */
+        background: white;
+        padding: 12px;
+        border-radius: 0.5rem; /* rounded-lg */
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        width: 320px; /* w-80 = 320px */
+        max-width: 90%;
+    }
+
+    .search-box input {
+        width: 100%;
+        border: 1px solid #d1d5db; /* border-gray-300 */
+        border-radius: 0.5rem; /* rounded-lg */
+        padding: 8px 12px; /* px-3 py-2 */
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+    .search-box input:focus {
+        border-color: #6366f1; /* focus:border-[var(--primary)] */
+        ring: 2px solid #6366f1;
+    }
+
+    .search-box button {
+        background: #6366f1; /* bg-[var(--primary)] */
+        color: white;
+        padding: 8px 16px; /* px-4 py-2 */
+        border-radius: 0.5rem; /* rounded-lg */
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+    }
+
+    .search-box button:hover {
+        background: #5b5cdd; /* hover:bg-[var(--primary-light)] */
+    }
+
+    .search-box button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    /* Loading spinner */
+    .animate-spin {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    /* Ensure map controls are visible */
+    .leaflet-top, .leaflet-bottom {
+        z-index: 999;
+    }
+
+</style>
+
+<div class="min-h-screen bg-[var(--bg)] py-8">
+    <div class="max-w-4xl mx-auto px-4">
+        <!-- Page Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-white mb-3">Post Keja Yako</h1>
+            <p class="text-gray-400">List your property and reach thousands of potential tenants</p>
+        </div>
+
+        <!-- Success/Error Messages -->
+
+        <form method="post" enctype="multipart/form-data" class="space-y-8" onsubmit="return validateForm()">
+            {% csrf_token %}
+
+            <!-- HOUSE DETAILS SECTION -->
+            <div class="bg-[var(--bg-light)] rounded-2xl p-6 border border-[var(--border)]">
+                <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    </svg>
+                    House Details
+                </h2>
+                
+                <div class="space-y-4">
+                    <!-- Title -->
+                    <div>
+                        <label for="{{ form.title.id_for_label }}" class="block text-white font-medium mb-2">{{ form.title.label }} *</label>
+                        {{ form.title|add_class:"w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" }}
+                        {% if form.title.errors %}
+                            <div class="text-red-400 text-sm mt-1">{{ form.title.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- House Type -->
+                    <div>
+                        <label for="{{ form.house_type.id_for_label }}" class="block text-white font-medium mb-2">{{ form.house_type.label }} *</label>
+                        {{ form.house_type|add_class:"w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" }}
+                        {% if form.house_type.errors %}
+                            <div class="text-red-400 text-sm mt-1">{{ form.house_type.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Description -->
+                    <div>
+                        <label for="{{ form.description.id_for_label }}" class="block text-white font-medium mb-2">{{ form.description.label }} *</label>
+                        {{ form.description|add_class:"w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" }}
+                        {% if form.description.errors %}
+                            <div class="text-red-400 text-sm mt-1">{{ form.description.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Rent and Deposit -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.rent.id_for_label }}" class="block text-white font-medium mb-2">{{ form.rent.label }} *</label>
+                            {{ form.rent|add_class:"w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" }}
+                            {% if form.rent.errors %}
+                                <div class="text-red-400 text-sm mt-1">{{ form.rent.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.deposit.id_for_label }}" class="block text-white font-medium mb-2">{{ form.deposit.label }} *</label>
+                            {{ form.deposit|add_class:"w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" }}
+                            {% if form.deposit.errors %}
+                                <div class="text-red-400 text-sm mt-1">{{ form.deposit.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- House Number and Floor -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.house_number.id_for_label }}" class="block text-white font-medium mb-2">{{ form.house_number.label }} *</label>
+                            {{ form.house_number|add_class:"w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" }}
+                            {% if form.house_number.errors %}
+                                <div class="text-red-400 text-sm mt-1">{{ form.house_number.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.floor_number.id_for_label }}" class="block text-white font-medium mb-2">{{ form.floor_number.label }}</label>
+                            {{ form.floor_number|add_class:"w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" }}
+                            {% if form.floor_number.errors %}
+                                <div class="text-red-400 text-sm mt-1">{{ form.floor_number.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LOCATION SECTION -->
+            <div class="bg-[var(--bg-light)] rounded-2xl p-6 border border-[var(--border)]">
+                <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Location Details
+                </h2>
+                
+                <!-- Location Input -->
+                <div class="mb-4">
+                    <label for="{{ form.location.id_for_label }}" class="block text-white font-medium mb-2">{{ form.location.label }} *</label>
+                    {{ form.location|add_class:"w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" }}
+                    {% if form.location.errors %}
+                        <div class="text-red-400 text-sm mt-1">{{ form.location.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <p class="text-gray-400 mb-4">Pin your exact location on the map below:</p>
+
+                <!-- Map Container -->
+                <div class="map-container">
+                    <div class="search-box">
+                        <div class="flex gap-2">
+                            <input type="text" id="address-search" class="flex-1" placeholder="Search location (e.g., Karen, Nairobi)" value="">
+                            <button type="button" onclick="searchAddress()" id="search-button">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="map" class="w-full h-full"></div>
+                </div>
+
+                {% comment %} <div class="w-full h-96 rounded-xl overflow-hidden border-2 border-[var(--primary)] bg-gray-200 relative">
+                    <div class="absolute top-3 left-3 z-10 bg-white p-2 rounded-lg shadow-lg w-80">
+                        <div class="flex gap-2">
+                            <input type="text" id="address-search" class="flex-1 border border-gray-300 rounded-lg px-3 py-2" placeholder="Search location...">
+                            <button type="button" onclick="searchAddress()" class="bg-[var(--primary)] text-white px-4 py-2 rounded-lg hover:bg-[var(--primary-light)] transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="map" class="w-full h-full"></div>
+                </div> {% endcomment %}
+
+                <!-- Coordinates Display -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                        <label for="{{ form.latitude.id_for_label }}" class="block text-white font-medium mb-2">{{ form.latitude.label }} *</label>
+                        {{ form.latitude|add_class:"w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white text-center font-mono" }}
+                        {% if form.latitude.errors %}
+                            <div class="text-red-400 text-sm mt-1">{{ form.latitude.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.longitude.id_for_label }}" class="block text-white font-medium mb-2">{{ form.longitude.label }} *</label>
+                        {{ form.longitude|add_class:"w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white text-center font-mono" }}
+                        {% if form.longitude.errors %}
+                            <div class="text-red-400 text-sm mt-1">{{ form.longitude.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- IMAGES SECTION -->
+            <div class="bg-[var(--bg-light)] rounded-2xl p-6 border border-[var(--border)]">
+                <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    Upload Photos
+                </h2>
+                <p class="text-gray-400 mb-4">Upload up to 15 images of your property (Max 20MB each)</p>
+                
+                <input type="file" class="w-full bg-[var(--bg)] border border-[var(--border)] rounded-xl px-4 py-3 text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[var(--primary)] file:text-white hover:file:bg-[var(--primary-light)]" 
+                       id="imageFiles" name="imageFiles" multiple accept="image/*" onchange="previewImages(this)">
+                
+                <div id="image-preview" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4"></div>
+            </div>
+
+            <!-- TERMS SECTION WITH QUILL -->
+            <div class="bg-[var(--bg-light)] rounded-2xl p-6 border border-[var(--border)]">
+                <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Rental Terms
+                </h2>
+                <p class="text-xs text-gray-400 mb-4">Format your rental terms with rich text editing</p>
+                
+                <!-- Quill Editor -->
+                <div id="terms-editor" style="background: white; border-radius: 0.5rem;"></div>
+                <input type="hidden" id="terms-content" name="terms">
+                
+                <div class="mt-3">
+                    <small class="text-xs text-gray-400">
+                        💡 <strong>Formatting tips:</strong> Use bullet points for rules, bold for important terms.
+                    </small>
+                </div>
+                
+                <!-- Debug element to see what's being sent -->
+                <div id="terms-debug" class="hidden text-xs text-gray-500 mt-2"></div>
+            </div>
+
+            <!-- SUBMIT BUTTON -->
+            <div class="text-center">
+                <button type="submit" class="bg-white text-[var(--bg)] px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition transform hover:scale-105">
+                    <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                    PAY KES 800 & SUBMIT HOUSE
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Quill JS -->
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+<script>
+    // Map variables
+    let map, marker;
+    let quill;
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeMap();
+        initializeQuill();
+    });
+
+    function initQuillEditor() {
+    // Initialize Quill editor
+        quill = new Quill('#terms-editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['link'],
+                    ['clean']
+                ]
+            },
+            placeholder: 'Write your rental terms here...\n\n• No pets allowed\n• 1 month notice period\n• Deposit refundable within 14 days\n• Quiet hours: 10 PM - 7 AM\n• No smoking inside'
+        });
+
+        // Set default content for testing
+        setTimeout(() => {
+            if (quill.getText().trim() === '') {
+                quill.root.innerHTML = '<p>• No pets allowed</p><p>• 1 month notice period</p><p>• Deposit refundable within 14 days</p>';
+            }
+        }, 1000);
+
+        console.log('Quill editor initialized');
+    }
+
+    function initializeMap() {
+        // Initialize map
+        map = L.map('map').setView([-1.2921, 36.8219], 13);
+
+        // Add tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        // Create custom marker
+        const customIcon = L.divIcon({
+            className: 'custom-marker',
+            html: '<div style="width: 24px; height: 24px; background: #6366f1; border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        });
+
+        // Add draggable marker
+        marker = L.marker([-1.2921, 36.8219], {
+            icon: customIcon,
+            draggable: true
+        }).addTo(map);
+
+        marker.bindPopup("<b>Your Property</b><br>Drag to adjust location").openPopup();
+
+        // Update coordinates when marker is moved
+        function updateCoordinates() {
+            const position = marker.getLatLng();
+            document.getElementById('id_latitude').value = position.lat.toFixed(6);
+            document.getElementById('id_longitude').value = position.lng.toFixed(6);
+        }
+
+        marker.on('dragend', updateCoordinates);
+
+        // Update coordinates when map is clicked
+        map.on('click', function(e) {
+            marker.setLatLng(e.latlng);
+            updateCoordinates();
+            map.panTo(e.latlng);
+        });
+
+        // Initial coordinate update
+        updateCoordinates();
+
+        // Handle map resize
+        setTimeout(() => {
+            map.invalidateSize();
+        }, 100);
+    }
+
+    function initializeQuill() {
+        if(document.ready === 'loading'){
+            document.addEventListener('DOMContentLoaded', function(){
+                initQuillEditor();
+            });
+        }else{
+            initQuillEditor();
+        }
+    }
+
+    function searchAddress() {
+        const query = document.getElementById('address-search').value.trim();
+        if (!query) {
+            alert('Please enter a location to search for.');
+            return;
+        }
+
+        // Show loading state
+        const searchButton = document.querySelector('button[onclick="searchAddress()"]');
+        const originalContent = searchButton.innerHTML;
+        searchButton.innerHTML = '<div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>';
+        searchButton.disabled = true;
+
+        console.log('Searching for:', query);
+
+        // Add Kenya to the search query for better results
+        const searchQuery = query.includes('Kenya') || query.includes('Nairobi') ? query : `${query}, Nairobi, Kenya`;
+        
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&countrycodes=ke`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Search results:', data);
+                
+                if (data && data.length > 0) {
+                    const result = data[0];
+                    const lat = parseFloat(result.lat);
+                    const lon = parseFloat(result.lon);
+                    
+                    console.log('Found location:', result.display_name, 'at', lat, lon);
+                    
+                    // Update marker position
+                    marker.setLatLng([lat, lon]);
+                    
+                    // Center map on the location with higher zoom
+                    map.setView([lat, lon], 16);
+                    
+                    // Update coordinate fields
+                    document.getElementById('id_latitude').value = lat.toFixed(6);
+                    document.getElementById('id_longitude').value = lon.toFixed(6);
+                    
+                    // Update location input field
+                    document.getElementById('id_location').value = result.display_name;
+                    
+                    // Show success message in popup
+                    marker.bindPopup(`<b>Location Found</b><br>${result.display_name}<br>Drag marker to adjust exact position`).openPopup();
+                    
+                } else {
+                    alert('Location not found. Please try a different search term.\n\nTry: "Karen, Nairobi" or "Westlands, Nairobi"');
+                }
+            })
+            .catch(error => {
+                console.error('Error searching address:', error);
+                alert('Error searching for location. Please check your internet connection and try again.');
+            })
+            .finally(() => {
+                // Restore button state
+                searchButton.innerHTML = originalContent;
+                searchButton.disabled = false;
+            });
+    }
+
+    // Image preview function
+    function previewImages(input) {
+        const preview = document.getElementById('image-preview');
+        preview.innerHTML = '';
+        
+        const files = input.files;
+        
+        // Validate number of files
+        if (files.length > 15) {
+            alert('Maximum 15 images allowed. Please select fewer images.');
+            input.value = '';
+            return;
+        }
+        
+        // Validate each file
+        for (let file of files) {
+            // Check file size (20MB)
+            if (file.size > 20 * 1024 * 1024) {
+                alert(`Image ${file.name} is too large. Maximum size is 20MB.`);
+                input.value = '';
+                return;
+            }
+            
+            // Check file type
+            if (!file.type.startsWith('image/')) {
+                alert(`File ${file.name} is not a valid image.`);
+                input.value = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const div = document.createElement('div');
+                div.className = 'relative';
+                div.innerHTML = `
+                    <img src="${e.target.result}" class="w-full h-32 object-cover rounded-lg border border-[var(--border)]">
+                    <button type="button" class="remove-image" onclick="this.parentElement.remove()">
+                        ×
+                    </button>
+                `;
+                preview.appendChild(div);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function validateForm() {
+        console.log('Form submission started...');
+        
+        // Get Quill content and put it in hidden input
+        const termsContent = quill.root.innerHTML;
+        const plainText = quill.getText().trim();
+        
+        console.log('Quill HTML:', termsContent);
+        console.log('Quill Plain Text:', plainText);
+        
+        // Update the hidden input
+        document.getElementById('terms-content').value = termsContent;
+        
+        // Debug: Check if hidden input is being set
+        console.log('Hidden input value:', document.getElementById('terms-content').value);
+        
+        // Validate terms content
+        if (!plainText || plainText === '' || plainText === '\n\n' || plainText.length < 5) {
+            alert('Please enter at least one rental term in the Rental Terms section.');
+            return false;
+        }
+        
+        // Additional validation for coordinates
+        const lat = document.getElementById('id_latitude').value;
+        const lng = document.getElementById('id_longitude').value;
+        if (!lat || !lng) {
+            alert('Please set the location by searching or clicking on the map.');
+            return false;
+        }
+        
+        // Validate images
+        const imageFiles = document.getElementById('imageFiles').files;
+        if (imageFiles.length === 0) {
+            alert('Please upload at least one image of the property.');
+            return false;
+        }
+        
+        console.log('All validations passed, submitting form...');
+        return true;
+    }
+
+    // Form validation on submit
+    document.querySelector('form').addEventListener('submit', function(event) {
+        console.log('Form submission started...');
+
+        event.preventDefault();
+        // Get Quill content and put it in hidden input
+        const termsContent = quill.root.innerHTML;
+        document.getElementById('terms-content').value = termsContent;
+         // Get Quill content and put it in hidden input
+        const plainText = quill.getText().trim();
+
+        console.log('Quill HTML:', termsContent);
+        console.log('Quill Plain Text:', plainText);
+
+        
+        // Additional validation for coordinates
+        const lat = document.getElementById('id_latitude').value;
+        const lng = document.getElementById('id_longitude').value;
+        if (!lat || !lng) {
+            alert('Please set the location by searching or clicking on the map.');
+            return;
+        }
+        
+        // Validate images
+        const imageFiles = document.getElementById('imageFiles').files;
+        if (imageFiles.length === 0) {
+            alert('Please upload at least one image of the property.');
+            return;
+        }
+
+        console.log('All validations passed, submitting form...');
+    
+        // If all validations pass, submit the form programmatically
+
+        this.submit();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,201 @@
+<!-- payments/success.html -->
+{% extends "base.html" %}
+{% block meta %}<meta name="robots" content="noindex,nofollow">{% endblock %}
+{% block title %}Success payment - NyumbaFinder KE{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-b from-gray-900 to-black py-12">
+    <div class="max-w-md mx-auto">
+        <!-- Success Animation -->
+        <div class="text-center mb-8">
+            <div class="relative w-32 h-32 mx-auto mb-6">
+                <!-- Animated checkmark -->
+                <svg class="w-full h-full text-emerald-500" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="8" fill="none" class="opacity-20"/>
+                    <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="8" fill="none" 
+                            stroke-dasharray="283" stroke-dashoffset="283"
+                            class="animate-draw">
+                        <animate attributeName="stroke-dashoffset" from="283" to="0" dur="1s" fill="freeze"/>
+                    </circle>
+                    <path d="M30,50 L45,65 L70,35" stroke="currentColor" stroke-width="8" fill="none"
+                          stroke-dasharray="50" stroke-dashoffset="50"
+                          class="animate-draw">
+                        <animate attributeName="stroke-dashoffset" from="50" to="0" dur="0.5s" begin="0.5s" fill="freeze"/>
+                    </path>
+                </svg>
+                
+                <!-- Confetti effect -->
+                <div class="absolute inset-0 overflow-hidden pointer-events-none">
+                    {% for i in "12345" %}
+                    <div class="absolute w-2 h-2 bg-yellow-400 rounded-full animate-confetti"
+                         style="top: 30%; left: {{ forloop.counter|add:"1" }}0%; animation-delay: {{ forloop.counter }}00ms;"></div>
+                    <div class="absolute w-2 h-2 bg-pink-400 rounded-full animate-confetti"
+                         style="top: 40%; left: {{ forloop.counter|add:"2" }}0%; animation-delay: {{ forloop.counter|add:"2" }}00ms;"></div>
+                    <div class="absolute w-2 h-2 bg-blue-400 rounded-full animate-confetti"
+                         style="top: 50%; left: {{ forloop.counter|add:"3" }}0%; animation-delay: {{ forloop.counter|add:"4" }}00ms;"></div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <h1 class="text-4xl font-bold text-white mb-3">Payment Successful! 🎉</h1>
+            <p class="text-gray-400 text-lg">Your listing is now live and visible to renters</p>
+        </div>
+
+        <!-- Receipt Card -->
+        <div class="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-2xl p-8 mb-6">
+            <div class="space-y-6">
+                <!-- Receipt Header -->
+                <div class="text-center mb-6">
+                    <h3 class="text-white font-bold text-xl mb-2">Payment Receipt</h3>
+                    <p class="text-gray-400">Transaction {{ payment.id }}</p>
+                </div>
+
+                <!-- Receipt Details -->
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center py-3 border-b border-gray-700">
+                        <span class="text-gray-400">Amount Paid</span>
+                        <span class="text-2xl font-bold text-emerald-400">KES {{ amount|floatformat:2 }}</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center py-3 border-b border-gray-700">
+                        <span class="text-gray-400">Payment Method</span>
+                        <span class="text-white font-medium">
+                            <span class="inline-flex items-center gap-1">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/M-PESA_LOGO-01.svg/1200px-M-PESA_LOGO-01.svg.png" 
+                                     alt="M-Pesa" class="w-6 h-6">
+                                M-Pesa
+                            </span>
+                        </span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center py-3 border-b border-gray-700">
+                        <span class="text-gray-400">Transaction Code</span>
+                        <code class="text-white font-mono bg-gray-900 px-3 py-1 rounded">{{ payment.latest_mpesa_code|default:"Pending" }}</code>
+                    </div>
+                    
+                    <div class="flex justify-between items-center py-3 border-b border-gray-700">
+                        <span class="text-gray-400">Date & Time</span>
+                        <span class="text-white">{{ payment.payment_date|date:"d M Y, h:i A" }}</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center py-3">
+                        <span class="text-gray-400">Status</span>
+                        <span class="px-3 py-1 bg-emerald-900/30 text-emerald-400 rounded-full text-sm font-medium">
+                            ✅ Completed
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Listing Info -->
+                <div class="bg-gray-900/30 rounded-xl p-4 mt-6">
+                    <h4 class="text-white font-bold mb-3">Your Active Listing</h4>
+                    <div class="flex items-start gap-3">
+                        {% if house.images.first %}
+                        <img src="{{ house.images.first.image.url }}" 
+                             alt="{{ house.title }}"
+                             class="w-16 h-16 rounded-lg object-cover">
+                        {% endif %}
+                        <div class="flex-1">
+                            <h5 class="text-white font-medium">{{ house.title }}</h5>
+                            <p class="text-gray-400 text-sm mt-1">{{ house.location|truncatechars:40 }}</p>
+                            <div class="flex items-center gap-2 mt-2">
+                                <span class="text-emerald-400 font-bold">KES {{ house.rent|floatformat:0 }}</span>
+                                <span class="text-gray-500 text-sm">/month</span>
+                                <span class="ml-auto px-2 py-1 bg-blue-900/30 text-blue-400 text-xs rounded">
+                                    Active for 30 days
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Next Steps -->
+        <div class="bg-gray-800/30 border border-gray-700 rounded-2xl p-6 mb-6">
+            <h3 class="text-white font-bold text-lg mb-4">What happens next?</h3>
+            <div class="space-y-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-blue-900/20 text-blue-400 rounded-lg flex items-center justify-center flex-shrink-0">
+                        1
+                    </div>
+                    <div>
+                        <h4 class="text-white font-medium">Your listing is now public</h4>
+                        <p class="text-gray-400 text-sm">Renters can view and contact you</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-blue-900/20 text-blue-400 rounded-lg flex items-center justify-center flex-shrink-0">
+                        2
+                    </div>
+                    <div>
+                        <h4 class="text-white font-medium">Get notified of inquiries</h4>
+                        <p class="text-gray-400 text-sm">We'll email you when someone is interested</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-blue-900/20 text-blue-400 rounded-lg flex items-center justify-center flex-shrink-0">
+                        3
+                    </div>
+                    <div>
+                        <h4 class="text-white font-medium">Manage your listing</h4>
+                        <p class="text-gray-400 text-sm">Edit, renew, or mark as rented from your dashboard</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="space-y-4">
+            <a href="{% url 'house_detail' house.id %}" 
+               class="block w-full bg-emerald-600 text-white py-4 rounded-xl font-bold text-center hover:bg-emerald-700 transition">
+                View Your Live Listing →
+            </a>
+            
+            <a href="{% url 'dashboard' %}" 
+               class="block w-full bg-gray-700 text-white py-3 rounded-xl font-medium text-center hover:bg-gray-600 transition">
+                Go to Dashboard
+            </a>
+            
+            <button onclick="window.print()" 
+                    class="w-full border border-gray-600 text-gray-300 py-3 rounded-xl font-medium hover:bg-gray-800 transition flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                </svg>
+                Print Receipt
+            </button>
+        </div>
+
+        <!-- Support -->
+        <div class="text-center mt-8">
+            <p class="text-gray-500 text-sm">
+                Questions about your payment? 
+                <a href="mailto:support@nyumbafinder.co.ke" class="text-emerald-400 hover:text-emerald-300">
+                    Contact Support
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes draw {
+    to { stroke-dashoffset: 0; }
+}
+
+@keyframes confetti {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100px) rotate(360deg); opacity: 0; }
+}
+
+.animate-draw {
+    animation: draw 1s ease-out forwards;
+}
+
+.animate-confetti {
+    animation: confetti 1s ease-out forwards;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,12 @@
+Collecting numpy==2.0
+  Downloading numpy-2.0.0-cp39-cp39-win_amd64.whl.metadata (60 kB)
+Requirement already satisfied: wheel in c:\users\dev\desktop\housefinder\proj-django\venv\lib\site-packages (0.45.1)
+Requirement already satisfied: setuptools in c:\users\dev\desktop\housefinder\proj-django\venv\lib\site-packages (80.9.0)
+Downloading numpy-2.0.0-cp39-cp39-win_amd64.whl (16.5 MB)
+   ---------------------------------------- 16.5/16.5 MB 1.7 MB/s  0:00:09
+Installing collected packages: numpy
+  Attempting uninstall: numpy
+    Found existing installation: numpy 2.0.2
+    Uninstalling numpy-2.0.2:
+      Successfully uninstalled numpy-2.0.2
+Successfully installed numpy-2.0.0

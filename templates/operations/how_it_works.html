@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block meta %}<meta name="robots" content="index,follow">{% endblock %}
+{% block title %}How It Works - NyumbaFinder KE{% endblock %}
+
+{% block content %}
+    <div class="min-h-screen py-16 px-6">
+        <div class="max-w-5xl mx-auto">
+
+            <!-- HERO SECTION -->
+            <div class="text-center mb-16">
+                <h1 class="text-5xl md:text-6xl font-bold text-white mb-6">
+                    How NyumbaFinder KE Works
+                </h1>
+                <p class="text-2xl text-indigo-400 font-medium max-w-3xl mx-auto">
+                    We verify every landlord and agent so you never fall for a scam again.
+                </p>
+                <p class="text-gray-400 text-lg mt-4">
+                    Only real homes. Only verified owners. Zero fake listings.
+                </p>
+            </div>
+
+            <!-- MAIN CONTENT -->
+            <div class="grid md:grid-cols-2 gap-12">
+
+                <!-- LEFT: FOR TENANTS (RENTING A HOUSE) -->
+                <div class="space-y-10">
+                    <div class="bg-gradient-to-br from-green-900/30 to-emerald-900/20 border border-green-800 rounded-2xl p-8 backdrop-blur-sm">
+                        <h2 class="text-3xl font-bold text-green-400 mb-6 flex items-center gap-4">
+                            <span class="text-5xl">Search</span> For Tenants
+                        </h2>
+                        <div class="space-y-6 text-gray-300 text-lg">
+                            <div class="flex gap-4">
+                                <div class="text-4xl font-bold text-green-500">1</div>
+                                <div>
+                                    <h3 class="font-bold text-white">Browse Verified Homes</h3>
+                                    <p>Every listing is checked by our team. No fake photos. No fake agents.</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="text-4xl font-bold text-green-500">2</div>
+                                <div>
+                                    <h3 class="font-bold text-white">Contact Real Landlords</h3>
+                                    <p>Chat or call directly. All landlords are ID-verified.</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="text-4xl font-bold text-green-500">3</div>
+                                <div>
+                                    <h3 class="font-bold text-white">Visit & Move In Safely</h3>
+                                    <p>Pay rent only after seeing the house in person.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-8 p-6 bg-green-900/40 rounded-xl border border-green-700">
+                            <p class="text-green-300 font-bold text-xl text-center">
+                                100% Scam-Free Experience
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT: FOR LANDLORDS & AGENTS -->
+                <div class="space-y-10">
+                    <div class="bg-gradient-to-br from-purple-900/30 to-indigo-900/20 border border-purple-800 rounded-2xl p-8 backdrop-blur-sm">
+                        <h2 class="text-3xl font-bold text-purple-400 mb-6 flex items-center gap-4">
+                            <span class="text-5xl">Post</span> For Landlords & Agents
+                        </h2>
+                        <div class="space-y-6 text-gray-300 text-lg">
+                            <div class="flex gap-4">
+                                <div class="text-4xl font-bold text-purple-500">1</div>
+                                <div>
+                                    <h3 class="font-bold text-white">Verify Your Identity</h3>
+                                    <p>Submit National ID + pay small refundable fee (KES 500–1500 via M-Pesa)</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="text-4xl font-bold text-purple-500">2</div>
+                                <div>
+                                    <h3 class="font-bold text-white">Post Your Property</h3>
+                                    <p>Upload real photos, correct location, and fair price</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="text-4xl font-bold text-purple-500">3</div>
+                                <div>
+                                    <h3 class="font-bold text-white">Get Approved & Go Live</h3>
+                                    <p>Our team reviews in 24–48 hours. Once approved → tenants see your house!</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-8 p-6 bg-purple-900/40 rounded-xl border border-purple-700">
+                            <p class="text-purple-300 font-bold text-xl text-center">
+                                Only Verified Owners Can Post
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ANTI-SCAM SHIELD SECTION -->
+            <div class="mt-20 text-center">
+                <div class="inline-block bg-gradient-to-r from-red-600 via-orange-600 to-red-700 text-white px-12 py-10 rounded-3xl shadow-2xl border-4 border-red-500">
+                    <h2 class="text-4xl font-black mb-6">How We Stop Scammers</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left max-w-4xl mx-auto">
+                        <div class="bg-black/30 p-6 rounded-xl">
+                            <h3 class="text-xl font-bold text-orange-400 mb-3">ID Verification</h3>
+                            <p>Every landlord/agent must submit National ID or business registration</p>
+                        </div>
+                        <div class="bg-black/30 p-6 rounded-xl">
+                            <h3 class="text-xl font-bold text-orange-400 mb-3">M-Pesa Listing Fee</h3>
+                            <p>Small refundable fee (KES 500–1500) blocks fake accounts</p>
+                        </div>
+                        <div class="bg-black/30 p-6 rounded-xl">
+                            <h3 class="text-xl font-bold text-orange-400 mb-3">Manual Admin Review</h3>
+                            <p>Every listing checked by real humans before going live</p>
+                        </div>
+                    </div>
+                    <div class="mt-10">
+                        <p class="text-3xl font-bold text-yellow-300">
+                            Fake Listings = Banned Forever + Reported to Police
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FINAL CALL TO ACTION -->
+            <div class="text-center mt-20">
+                <h2 class="text-4xl font-bold text-white mb-6">
+                    Ready to Find or Post a Real Home?
+                </h2>
+                <div class="flex flex-col sm:flex-row gap-6 justify-center">
+                    <a href="{% url 'register' %}" class="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold text-xl px-10 py-5 rounded-xl transition transform hover:scale-105 shadow-xl">
+                        Start Searching Now
+                    </a>
+                    <a href="{% url 'register' %}" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-xl px-10 py-5 rounded-xl transition transform hover:scale-105 shadow-xl">
+                        Post Your Property
+                    </a>
+                </div>
+                <p class="text-gray-400 mt-10 text-lg">
+                    Join thousands of Kenyans who now rent and list homes <span class="text-green-400 font-bold">without fear</span>.
+                </p>
+            </div>
+
+            <!-- TRUST BADGE -->
+            <div class="text-center mt-16">
+                <p class="text-3xl font-bold text-green-400">
+                    NyumbaFinder KE — Kenya’s Only Scam-Free Housing Platform
+                </p>
+                <p class="text-gray-500 mt-4 text-xl">
+                    Built to protect families. Backed by verification. Trusted by thousands.
+                </p>
+            </div>
+
+        </div>
+    </div>
+{% endblock %}

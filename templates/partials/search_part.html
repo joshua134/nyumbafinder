@@ -1,0 +1,42 @@
+<!-- Search Component -->
+<div class="flex items-center gap-2">
+    <button id="searchToggle" class="p-2 sm:p-3 bg-white/5 rounded-xl sm:rounded-2xl border border-white/10 hover:border-[var(--primary)] transition group backdrop-blur-sm">
+        <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 group-hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+    </button>
+</div>
+
+
+
+
+<!-- Search Overlay (Fixed position) -->
+{% comment %} <div id="searchOverlay" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-[var(--bg-light)] rounded-2xl border-2 border-[var(--border)] w-full max-w-2xl p-4 sm:p-6">
+        <form method="GET" action="{% url 'home' %}" class="flex flex-col sm:flex-row items-center gap-4" id="searchForm">
+            <div class="flex-1 relative w-full">
+                <input type="text" 
+                    name="search" 
+                    id="searchInput"
+                    placeholder="Search your houses by title, location, type, or rent..." 
+                    value="{{ request.GET.search }}"
+                    class="w-full bg-[var(--bg)] text-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl border border-[var(--border)] outline-none placeholder-gray-500 text-base sm:text-lg">
+                <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="flex gap-2 w-full sm:w-auto">
+                <button type="submit" class="flex-1 sm:flex-none bg-[var(--primary)] text-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl hover:bg-[var(--primary-light)] transition font-semibold text-sm sm:text-base">
+                    Search
+                </button>
+                <button type="button" id="closeSearch" class="flex-1 sm:flex-none p-3 sm:p-4 text-gray-400 hover:text-white transition border border-[var(--border)] rounded-xl">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        </form>
+    </div>
+</div> {% endcomment %}

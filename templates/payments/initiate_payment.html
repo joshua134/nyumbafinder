@@ -1,0 +1,200 @@
+<!-- payments/pay.html -->
+{% extends "base.html" %}
+{% block meta %}<meta name="robots" content="noindex,nofollow">{% endblock %}
+{% block title %}Pay - NyumbaFinder KE{% endblock %}
+
+{% block content %}
+<div class=" bg-gradient-to-b from-gray-900 to-black py-1">
+    <div class="max-w-md mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <h1 class="text-3xl font-bold text-white mb-2">Activate Your Listing</h1>
+            <p class="text-gray-400">KES 350 one-time fee • 30-day visibility • Scam protection</p>
+        </div>
+
+        <!-- House Card -->
+        <div class="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-2xl p-6 mb-6 transform transition-transform hover:scale-[1.02]">
+            <div class="flex items-start gap-4">
+                {% if house.images.first %}
+                <img src="{{ house.images.first.image.url }}" 
+                     alt="{{ house.title }}"
+                     class="w-20 h-20 rounded-xl object-cover">
+                {% endif %}
+                <div class="flex-1">
+                    <h3 class="text-white font-bold text-lg mb-1">{{ house.title }}</h3>
+                    <p class="text-gray-400 text-sm mb-2">{{ house.location|truncatechars:40 }}</p>
+                    <div class="flex items-center gap-4">
+                        <span class="text-emerald-400 font-bold text-xl">KES {{ house.rent|floatformat:0 }}</span>
+                        <span class="text-gray-500 text-sm">/month</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Form -->
+        <div class="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-2xl p-8">
+            <form method="POST" action="{% url 'process_payment' house.id %}" id="paymentForm" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Phone Input -->
+                <div class="space-y-3">
+                    <label class="block">
+                        <span class="text-white font-medium">M-Pesa Phone Number</span>
+                        <div class="relative mt-2">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500">+254</span>
+                            </div>
+                            <input type="tel" 
+                                   name="phone" 
+                                   id="phoneInput"
+                                   value="{{ request.user.profile.phone_plain|default:''|slice:'3:' }}"
+                                   placeholder="7XX XXX XXX" 
+                                   required
+                                   maxlength="9"
+                                   pattern="[0-9]{9}"
+                                   class="w-full pl-16 pr-4 py-4 bg-gray-900/50 border border-gray-600 rounded-xl text-white placeholder-gray-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none transition">
+                        </div>
+                    </label>
+                    <p class="text-gray-400 text-sm">We'll send a secure payment request to this number</p>
+                </div>
+
+                <!-- Payment Method -->
+                <div class="space-y-3">
+                    <span class="text-white font-medium">Payment Method</span>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="relative">
+                            <input type="radio" name="method" value="mpesa" checked class="sr-only peer">
+                            <div class="p-4 border-2 border-gray-600 rounded-xl bg-gray-900/30 cursor-pointer transition-all peer-checked:border-emerald-500 peer-checked:bg-emerald-900/20 peer-checked:ring-2 peer-checked:ring-emerald-500/30">
+                                <div class="flex items-center justify-center gap-2">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/M-PESA_LOGO-01.svg/1200px-M-PESA_LOGO-01.svg.png" 
+                                         alt="M-Pesa" class="w-8 h-8">
+                                    <div>
+                                        <div class="text-white font-bold">M-Pesa</div>
+                                        <div class="text-gray-400 text-xs">Pay with PIN</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="relative opacity-50 cursor-not-allowed">
+                            <input type="radio" name="method" value="card" disabled class="sr-only">
+                            <div class="p-4 border border-gray-700 rounded-xl bg-gray-900/10">
+                                <div class="flex items-center justify-center gap-2">
+                                    <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                    </svg>
+                                    <div>
+                                        <div class="text-gray-500 font-bold">Card</div>
+                                        <div class="text-gray-600 text-xs">Coming Soon</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Amount Display -->
+                <div class="bg-gray-900/30 border border-gray-700 rounded-xl p-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span class="text-gray-400">Listing Fee</span>
+                            <p class="text-gray-500 text-sm">One-time payment • 30 days active</p>
+                        </div>
+                        <span class="text-2xl font-bold text-white">KES {{ amount }}</span>
+                    </div>
+                </div>
+
+                <!-- Terms -->
+                <div class="space-y-3">
+                    <label class="flex items-start gap-3">
+                        <input type="checkbox" required class="mt-1 w-5 h-5 text-emerald-600 bg-gray-700 border-gray-600 rounded focus:ring-emerald-500 focus:ring-2">
+                        <span class="text-gray-300 text-sm">
+                            I agree to the 
+                            <a href="{% url 'terms_of_service' %}" class="text-emerald-400 hover:text-emerald-300">Terms of Service</a> 
+                            and understand this is a non-refundable listing fee for scam prevention.
+                        </span>
+                    </label>
+                    
+                    <div class="flex items-center gap-2 text-sm text-gray-400">
+                        <svg class="w-5 h-5 text-emerald-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>100% secure M-Pesa payment</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-gray-400">
+                        <svg class="w-5 h-5 text-emerald-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>Instant activation after payment</span>
+                    </div>
+                </div>
+                <!-- Submit Button -->
+                <button type="submit" 
+                        id="payButton"
+                        class="w-full bg-gradient-to-r from-emerald-600 to-green-500 text-white py-4 rounded-xl font-bold text-lg hover:from-emerald-700 hover:to-green-600 active:scale-95 transition-all duration-200 shadow-lg shadow-emerald-500/20">
+                    Pay KES {{ amount }} with M-Pesa
+                </button>
+
+                <!-- Security Badges -->
+                <div class="flex items-center justify-center gap-6 pt-4 border-t border-gray-700">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                        <span class="text-gray-400 text-sm">SSL Secured</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                        <span class="text-gray-400 text-sm">Scam Protection</span>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Support -->
+        <div class="text-center mt-8">
+            <p class="text-gray-500 text-sm">
+                Need help? 
+                <a href="tel:+254700000000" class="text-emerald-400 hover:text-emerald-300 font-medium">
+                    Call 0700 000 000
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('paymentForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    alert("submited");
+    
+    const phone = document.getElementById('phoneInput').value;
+    if (!phone || phone.length !== 9) {
+        alert('Please enter a valid 9-digit phone number (without +254)');
+        return;
+    }
+    
+    const button = document.getElementById('payButton');
+    const originalText = button.innerHTML;
+    
+    // Show loading state
+    button.innerHTML = `
+        <div class="flex items-center justify-center gap-2">
+            <div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <span>Processing...</span>
+        </div>
+    `;
+    button.disabled = true;
+    
+    // Submit form
+    this.submit();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,92 @@
+<!-- templates/partials/messages_js.html -->
+<script>
+// Message overlay functionality
+function initializeMessages() {
+    const messageOverlay = document.getElementById('message-overlay');
+    const messages = document.querySelectorAll('.message-alert');
+    
+    if (messages.length > 0) {
+        // Show the overlay
+        messageOverlay.classList.remove('hidden');
+        
+        // Animate each message in with delay
+        messages.forEach((message, index) => {
+            const delay = parseInt(message.getAttribute('data-delay')) * 300;
+            
+            setTimeout(() => {
+                message.classList.remove('translate-x-full', 'opacity-0');
+                message.classList.add('translate-x-0', 'opacity-100');
+                
+                // Start progress bar
+                const progressBar = message.querySelector('.progress-bar');
+                if (progressBar) {
+                    progressBar.style.width = '0%';
+                    setTimeout(() => {
+                        progressBar.style.width = '100%';
+                    }, 10);
+                }
+                
+                // Auto-remove after 8 seconds
+                setTimeout(() => {
+                    closeMessageElement(message);
+                }, 8000);
+                
+            }, delay);
+        });
+    }
+}
+
+function closeMessage(button) {
+    const messageElement = button.closest('.message-alert');
+    closeMessageElement(messageElement);
+}
+
+function closeMessageElement(messageElement) {
+    if (!messageElement) return;
+    
+    messageElement.classList.remove('translate-x-0', 'opacity-100');
+    messageElement.classList.add('translate-x-full', 'opacity-0');
+    
+    setTimeout(() => {
+        messageElement.remove();
+        
+        // Hide overlay if no messages left
+        const messageOverlay = document.getElementById('message-overlay');
+        const remainingMessages = messageOverlay.querySelectorAll('.message-alert');
+        
+        if (remainingMessages.length === 0) {
+            messageOverlay.classList.add('hidden');
+        }
+    }, 300);
+}
+
+// Initialize messages when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(initializeMessages, 500);
+});
+</script>
+
+<style>
+.message-alert {
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+
+.progress-bar {
+    transition: width 8s linear !important;
+}
+
+/* Ensure messages appear above other content */
+#message-overlay {
+    z-index: 9999;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 640px) {
+    #message-overlay {
+        top: 2rem;
+        right: 1rem;
+        left: 1rem;
+        max-width: none;
+    }
+}
+</style>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+     <style>
+        #map { height: 500px; }
+     </style>
+    </head>
+    <body>
+        <div id="map"></div>
+    </body>
+    <script>
+        var map = L.map('map').setView([-1.2921, 36.8219], 13);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+}).addTo(map);
+
+  const customIcon = L.divIcon({
+                className: 'custom-marker',
+                html: '<div style="width: 20px; height: 20px; background: #2563eb; border: 3px solid white; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>',
+                iconSize: [26, 26],
+                iconAnchor: [13, 13]
+            });
+
+            marker = L.marker([-1.2921, 36.8219], {
+                icon: customIcon,
+                draggable: true,
+                autoPan: true
+            }).addTo(map);
+
+            marker.bindPopup(`
+                <div style="text-align: center; padding: 8px;">
+                    <strong>Property Location</strong><br>
+                    <small>Drag to exact position</small>
+                </div>
+            `).openPopup();
+
+            map.on('click', e => {
+                marker.setLatLng(e.latlng);
+                updateCoords();
+                map.panTo(e.latlng);
+            });
+
+            function updateCoords() {
+                const pos = marker.getLatLng();
+                console.error(pos.lat.toFixed(6));
+                console.error(pos.lng.toFixed(6));
+            }
+    </script>
+</html>

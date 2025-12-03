@@ -1,0 +1,31 @@
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filter dropdown functionality
+        const filterDropdownToggle = document.querySelector('[data-filter-dropdown] button');
+        const filterDropdownMenu = document.querySelector('[data-filter-dropdown] .filter-dropdown-menu');
+
+        console.log('Filter dropdown elements:', {
+            toggle: filterDropdownToggle,
+            menu: filterDropdownMenu
+        });
+
+        if (filterDropdownToggle && filterDropdownMenu) {
+            filterDropdownToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                console.log('Filter button clicked!');
+                filterDropdownMenu.classList.toggle('hidden');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function() {
+                filterDropdownMenu.classList.add('hidden');
+            });
+
+            // Prevent dropdown from closing when clicking inside it
+            filterDropdownMenu.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+    });
+
+</script>

@@ -1,0 +1,36 @@
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Sort dropdown functionality
+        const sortDropdownToggle = document.querySelector('[data-sort-dropdown] button');
+        const sortDropdownMenu = document.querySelector('[data-sort-dropdown] .sort-dropdown-menu');
+        
+        console.log('Sort dropdown toggle:', sortDropdownToggle);
+        console.log('Sort dropdown menu:', sortDropdownMenu);
+        
+        if (sortDropdownToggle && sortDropdownMenu) {
+            sortDropdownToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                console.log('Sort button clicked!');
+                sortDropdownMenu.classList.toggle('hidden');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function() {
+                sortDropdownMenu.classList.add('hidden');
+            });
+
+            // Prevent dropdown from closing when clicking inside it
+            sortDropdownMenu.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+            
+            // Auto-submit when radio changes
+            const radioInputs = sortDropdownMenu.querySelectorAll('input[type="radio"]');
+            radioInputs.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    document.getElementById('sortForm').submit();
+                });
+            });
+        }
+    });
+</script>
