@@ -10,7 +10,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 if not STATIC_PATH.exists():
     STATIC_PATH.mkdir(exist_ok=True)
 
-config = Config(RepositoryEnv(BASE_DIR / '.env'))
+# config = Config(RepositoryEnv(BASE_DIR / '.env'))
 
 SECRET_KEY = config('SECRET_KEY', default='ndjango-nyumba-n-insecure-nyumba-n-anything-nyumba-n-works')
 DEBUG = config('DEBUG', default=True, cast=bool)
