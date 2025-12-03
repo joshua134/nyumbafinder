@@ -14,7 +14,7 @@ if not STATIC_PATH.exists():
 # config = Config(RepositoryEnv(BASE_DIR / '.env'))
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'ndjango-nyumba-n-insecure-nyumba-n-anything-nyumba-n-works')
-DEBUG = os.environ.get(('DEBUG', True)
+DEBUG = os.environ.get('DEBUG', True)
 
 ALLOWED_HOSTS = [
         "localhost",
