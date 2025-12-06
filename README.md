@@ -1,6 +1,6 @@
 # NyumbaFinder KE – Kenya’s Most Trusted House-Hunting Platform
 
-> **"No more fake listings. No more scammers. Only verified homes."**
+> ** No more scammers. Only verified homes."**
 
 Finding a house in Nairobi can be difficult, expensive and risky – especially for students, people with disabilities, or anyone affected by bad weather. Landlords and agents often post fake listings, disappear with deposits, or waste people’s time.
 
@@ -9,7 +9,7 @@ Finding a house in Nairobi can be difficult, expensive and risky – especially 
 ### Core Features
 - Post bedsitters, 1-bedroom, 2-bedroom, 3-bedroom, studio apartments, double rooms etc.
 - Listings include:
-  - House photos (multiple)
+  - House photos (multiple) -> videos to be added later
   - Exact location & house number
   - Floor number & floor
   - Rent, deposit, rental terms
@@ -39,7 +39,7 @@ Finding a house in Nairobi can be difficult, expensive and risky – especially 
 
 ### Tech Stack
 - Backend: Python Django
-- Database: PostgreSQL + Redis (caching)
+- Database : sqlite3 -> mysql later
 - Frontend: Tailwind CSS + Flowbite + Leaflet.js (interactive map)
 - Payments: M-Pesa Daraja API (STK Push – KES 800)
 - Hosting: Railway / Render / PythonAnywhere
